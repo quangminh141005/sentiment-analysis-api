@@ -43,3 +43,23 @@ training_args = TrainingArguments(
     load_best_model_at_end=True,
 )
 
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_datasets["train"],
+    eval_dataset=tokenized_datasets["validation"],
+)
+
+trainer.train()
+
+# Save model
+
+model.save_pretrained("./saved_model")
+tokenizer.save_pretrain("./saved_model")
+
+
+# Test inference 
+from transformers import pipeline
+classifier = pipeline("sentiment-analysis", model="./saved_model")
+result = classifier("I love this so muchhhh!")
+print(result)
