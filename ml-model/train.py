@@ -1,10 +1,10 @@
 import torch
-from transformers import {
+from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
     Trainer,
     TrainingArguments
-}
+)
 from datasets import load_dataset
 
 # Load pre-trained model
@@ -35,10 +35,10 @@ training_args = TrainingArguments(
     num_train_epochs=2, 
     per_device_train_batch_size=16,
     per_device_eval_batch_size=32,
-    warmup_step=500,
+    warmup_steps=500,
     weight_decay=0.01,
     logging_dir="./logs",
-    evaluation_strategy="epoch",
+    eval_strategy="epoch",
     save_strategy="epoch",
     load_best_model_at_end=True,
 )
@@ -55,7 +55,7 @@ trainer.train()
 # Save model
 
 model.save_pretrained("./saved_model")
-tokenizer.save_pretrain("./saved_model")
+tokenizer.save_pretrained("./saved_model")
 
 
 # Test inference 
