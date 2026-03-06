@@ -9,7 +9,6 @@ import * as path from 'path';
 export class SenttimentApiStack extends cdk.Stack {
     constructor(scope: Construct, id: String, props?: cdk.StackProps) {
         super(scope, id, props):
-    }
 
     // build a docker for lambda 
     const dockerImage = new ecr_assets.DockerImageAsset(this, 'SentimentModelImage', {
@@ -41,5 +40,40 @@ export class SenttimentApiStack extends cdk.Stack {
     });
 
     // grant permission for api lambda to invoke ML Lambda
-    
+    mlLambda.grantInvoke(apiLambda);
+
+    // API Gateway
+    const api = new apigateway.RestApi(this, 'SentimentAPI', {
+        restApiName: 'Semtiment Analysis API',
+        description: 'API for sentiment analysis using ML',
+        deployOptions: {
+            loggingLevel: apigateway.MethodLoggingLevel.INFO,
+            dataTraceEnabled: true,
+        },
+    });
+
+    //Routes
+    const sentimentResource = api.root.addResource('analyze');
+    sentimentResource.addMethod(
+        'POST',
+        new apigateway.LambdaIntegration(apiLambda)
+    );
+
+    // ADD CORS
+    sentimentResource.addCorsPrelight({
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: ['POST', 'OPTIONS'],
+    });
+
+    // outputs
+    new cdk.CfnOutput(this, 'ApiUrl', {
+        value: api.url,
+        description: 'API Gateway URL'
+    });
+
+    new cdk.CfnOutput(this, 'MLLabmbdaArn', {
+        value: mlLambda.functionArn,
+        description: 'ML Lambda ARN',
+    });
+    }
 }
