@@ -6,9 +6,9 @@ import * as ecr-assets from 'aws-cdk-lib/aws-ecr-assets';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
-export class SenttimentApiStack extends cdk.Stack {
-    constructor(scope: Construct, id: String, props?: cdk.StackProps) {
-        super(scope, id, props):
+export class SentimentApiStack extends cdk.Stack {
+    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+        super(scope, id, props);
 
     // build a docker for lambda 
     const dockerImage = new ecr_assets.DockerImageAsset(this, 'SentimentModelImage', {
@@ -44,7 +44,7 @@ export class SenttimentApiStack extends cdk.Stack {
 
     // API Gateway
     const api = new apigateway.RestApi(this, 'SentimentAPI', {
-        restApiName: 'Semtiment Analysis API',
+        restApiName: 'Sentiment Analysis API',
         description: 'API for sentiment analysis using ML',
         deployOptions: {
             loggingLevel: apigateway.MethodLoggingLevel.INFO,
@@ -60,7 +60,7 @@ export class SenttimentApiStack extends cdk.Stack {
     );
 
     // ADD CORS
-    sentimentResource.addCorsPrelight({
+    sentimentResource.addCorsPreflight({
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: ['POST', 'OPTIONS'],
     });
@@ -71,7 +71,7 @@ export class SenttimentApiStack extends cdk.Stack {
         description: 'API Gateway URL'
     });
 
-    new cdk.CfnOutput(this, 'MLLabmbdaArn', {
+    new cdk.CfnOutput(this, 'MLLambdaArn', {
         value: mlLambda.functionArn,
         description: 'ML Lambda ARN',
     });
