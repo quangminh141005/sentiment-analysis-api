@@ -1,0 +1,97 @@
+name: Deploy Sentiment Analysis API
+
+on:
+  push:
+    branches: [main]       # auto-deploy when you push to main
+  pull_request:
+    branches: [main]       # run tests on PRs but don't deploy
+
+jobs:
+  #  Test Python Lambda 
+  test-python:
+    name: Test Python Lambda
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          cd lambda-inference
+          pip install -r requirements.txt pytest
+
+      - name: Run tests (if any exist)
+        run: |
+          cd lambda-inference
+          # Only run if tests exist
+          if [ -d "tests" ]; then pytest tests/ -v; else echo "No tests yet"; fi
+
+  # Test TypeScript Lambda 
+  test-typescript:
+    name: Build TypeScript Lambda
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: lambda-api/package-lock.json
+
+      - name: Install and build
+        run: |
+          cd lambda-api
+          npm install
+          npm run build
+
+  #  Deploy to AWS (only on push to main) 
+  deploy:
+    name: Deploy to AWS
+    needs: [test-python, test-typescript]   # only runs if both tests pass
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-1
+
+      - name: Install CDK
+        run: npm install -g aws-cdk
+
+      - name: Build TypeScript Lambda
+        run: |
+          cd lambda-api
+          npm install
+          npm run build
+
+      - name: Install CDK dependencies
+        run: |
+          cd infrastructure
+          npm install
+
+      - name: Deploy with CDK
+        run: |
+          cd infrastructure
+          cdk deploy --all --require-approval never --outputs-file outputs.json
+
+      - name: Print deployed URLs
+        run: |
+          echo "Deployment complete!"
+          cat infrastructure/outputs.json
