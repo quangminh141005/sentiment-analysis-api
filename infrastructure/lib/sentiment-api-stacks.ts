@@ -1,8 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
-import * logs from 'aws-cdk-lib/aws-logs';
-import * as ecr-assets from 'aws-cdk-lib/aws-ecr-assets';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as ecr_assets from 'aws-cdk-lib/aws-ecr-assets';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
@@ -39,7 +39,7 @@ export class SentimentApiStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(30),
     });
 
-    // grant permission for api lambda to invoke ML Lambda
+    // grant permission(IAM policies) for api lambda to invoke ML Lambda
     mlLambda.grantInvoke(apiLambda);
 
     // API Gateway
