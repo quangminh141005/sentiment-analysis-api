@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
-import { ApiStack } from '../lib/monitorin-stack';
+import { ApiStack } from '../lib/monitoring-stack';
 import { MonitoringStack } from '../lib/monitoring-stack';
 
 const app = new cdk.App()
